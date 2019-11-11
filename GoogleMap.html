@@ -1,0 +1,180 @@
+    <html>
+    <head>
+    <title>Distance finder</title>
+    <meta type="description" content="Find the distance between two places on the map and the shortest route."/>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+	<script type="text/javascript" src="https://google-maps-utility-library-v3.googlecode.com/svn-history/r391/trunk/markerwithlabel/src/markerwithlabel.js"></script>
+
+<script type='text/javascript'>
+	var location1;
+	var address;
+	var geocoder;
+	var map;
+	
+	function initialize() {	
+		debugger;		
+		geocoder = new google.maps.Geocoder();
+		if (geocoder) 
+		{			
+			var strLocation = "560029@50#12.9326,77.6099$DRIVE|560030@100#12.9425,77.6221$TRAIN|560034@150#12.9241,77.6388$WALK|560035@80#12.9265,77.6242$DRIVE|560037@110#12.9275,77.6215$TRAIN|560045@110#12.9341,77.6298$WALK|560047@50#12.9386,77.6317$DRIVE|560092@80#12.9337,77.6151$TRAIN|560095@100#12.9257,77.6337$WALK";
+			var strLoc = strLocation.split('|');
+			for(var lat=0;lat<strLoc.length;lat++){
+				var Pincode = strLoc[lat].split('@')[0];
+				var Strength = strLoc[lat].split('@')[1].split('#')[0];
+				var GeoCode = strLoc[lat].split('@')[1].split('#')[1].split('$')[0];
+				var TransitMode = strLoc[lat].split('@')[1].split('#')[1].split('$')[1];
+				address = {lat:parseFloat(GeoCode.split(',')[0]), lng:parseFloat(GeoCode.split(',')[1])};				
+				if(lat == 0){
+					map = new google.maps.Map(document.getElementById('map_canvas'), {
+					  zoom: 12,
+					  center: address,
+					  mapTypeId: google.maps.MapTypeId.TERRAIN
+					});
+
+					directionsService = new google.maps.DirectionsService();
+					directionsDisplay = new google.maps.DirectionsRenderer(
+					{
+						suppressMarkers: true,
+						suppressInfoWindows: true
+					});
+					
+					directionsDisplay.setMap(map);
+				}
+				//debugger;
+				var center;
+				var clr;
+				if(Number(Strength) <= 50){
+					center = 100;
+					if(TransitMode == 'DRIVE'){
+						clr = '#ff4900';
+					}
+					if(TransitMode == 'RAIL'){
+						clr = '#00aaff';
+					}
+					if(TransitMode == 'WALK'){
+						clr = '#00aaff';
+					}
+				}
+				else if(Number(Strength) <= 80){
+					center = 150;
+					if(TransitMode == 'DRIVE'){
+						clr = '#e04000';
+					}
+					if(TransitMode == 'RAIL'){
+						clr = '#0095e0';
+					}
+					if(TransitMode == 'WALK'){
+						clr = '#00aaff';
+					}
+				}
+				else if(Number(Strength) <= 100){
+					center = 200;
+					if(TransitMode == 'DRIVE'){
+						clr = '#b83400';
+					}
+					if(TransitMode == 'RAIL'){
+						clr = '#007ab8';
+					}
+					if(TransitMode == 'WALK'){
+						clr = '#00aaff';
+					}
+				}
+				else if(Number(Strength) > 100){
+					center = 250;
+					if(TransitMode == 'DRIVE'){
+						clr = '#691e00';
+					}
+					if(TransitMode == 'RAIL'){
+						clr = '#004669';
+					}
+					if(TransitMode == 'WALK'){
+						clr = '#00aaff';
+					}
+				}
+				
+				//var circle = "circle_"+lat 12.9752461,77.5909889
+				var circle = new google.maps.Circle({
+					radius: center, 
+					center: address,
+					map: map,
+					fillColor: clr,
+					fillOpacity: 1,
+					strokeColor: clr,
+					strokeOpacity: 1,
+					title: "Prabhat"
+				});
+				//create info window
+				var infoWindow= new google.maps.InfoWindow({
+					content: strLoc[lat].toString()
+					});
+
+				//add a click event to the circle
+				google.maps.event.addListener(circle, 'click', function(){
+				//call  the infoWindow
+				infoWindow.open(map, circle);
+				});
+			}
+			var marker = new google.maps.Marker({
+				position: {lat:parseFloat('12.9352903'), lng:parseFloat('77.5771758')},
+				map: map,
+				title: 'Colliers International Pvt. Ltd.'
+			  });
+		}
+		debugger;		
+	}
+    
+</script>
+</head>
+<body bgcolor="#eeeeee">
+	<div id="form" style="width:100%;">
+		<table align="left" valign="center">
+			<tr>
+				<td colspan="10" align="left"><b>Colliers International Pvt. Ltd.</b></td>
+			</tr>
+			<tr>
+				<td>Current Location :</td>
+				<td>&nbsp;</td>
+				<td><input type="text" name="address1" id="address1" size="50"/></td>
+				<td>&nbsp;</td>	
+				<td colspan="7" align="left"><input type="button" value="Display" style="width:150px;" onClick="initialize();"/>
+			</tr>
+			<tr>
+				<td>Alternate Location :</td>
+				<td>&nbsp;</td>
+				<td><input type="text" name="address2" id="address2" size="50"/></td>
+				<td>&nbsp;</td>
+				<td colspan="7" align="center"><input type="button" value="Choose Location" style="width:150px;""/> &nbsp;&nbsp;<input type="button" value="Compare" style="width:150px;"/></td>
+			</tr>
+		</table>
+	</div>
+	<center><div style="width:100%;" id="distance_direct"></div></center>
+	<center><div style="width:100%;" id="distance_road"></div></center>	
+	<table width='100%' height="600px" border='1px' bgcolor='#ADD8E6'>
+		<tr>
+			<td colspan="1" width="80%" >
+				<div id="map_canvas" style="width:100%; height:600"></div>
+			</td>
+			<td colspan="1" width="20%" valign="top">
+				<table border='1px' bgcolor='#ADD8E6' width="100%" height="150px">
+					<td>
+						<span>Total Employee Strength : 893</span></br>
+						<span>travelling by Road : 50%</span></br>
+						<span>travelling by Rail : 25%</span></br>
+						<span>travelling by Walk : 25%</span></br>
+					</td>
+				</table>	
+				<table border='1px' bgcolor='#ADD8E6' width="100%" height="150px">
+					<td >
+						<span>Comparision of Time</span></br>
+					</td>
+				</table>	
+				<table border='1px' width="100%" bgcolor='#ADD8E6' height="150px">
+					<td>
+						<span>Comparision of Time</span></br>
+					</td>
+				</table>	
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

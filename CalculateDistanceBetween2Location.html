@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="robots" content="noindex,follow" />
+    <title>Calculate driving distance with Google Maps API</title>
+    <script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAA7j_Q-rshuWkc8HyFI4V2HxQYPm-xtd00hTQOC0OXpAMO40FHAxT29dNBGfxqMPq5zwdeiDSHEPL89A" type="text/javascript"></script>
+    <!-- According to the Google Maps API Terms of Service you are required display a Google map when using the Google Maps API. see: http://code.google.com/apis/maps/terms.html -->
+    <script type="text/javascript">
+
+    var geocoder, location1, location2, gDir;
+
+    	var map;
+	var bounds=new google.maps.LatLngBounds();
+	var directionsDisplay;
+	var directionsService=new google.maps.DirectionsService();
+	function initialize(){
+		directionsDisplay=new google.maps.DirectionsRenderer();
+		var startAddressInput=(document.getElementById('start-address'));
+		var stopAddressInput=(document.getElementById('stop-address'));
+		var startComplete=new google.maps.places.Autocomplete(startAddressInput);
+		var stopComplete=new google.maps.places.Autocomplete(stopAddressInput);
+		var opts={center:new google.maps.LatLng(55.53,9.4),zoom:10};
+		map=new google.maps.Map(document.getElementById('map-canvas'),opts);
+		directionsDisplay.setMap(map);geocoder=new google.maps.Geocoder();
+		if(getUrlParameter('calc')=='true'){
+			calcRoute();
+		}
+	}
+	function getUrlParameter(sParam){
+		var sPageURL=window.location.search.substring(1);	
+		var sURLVariables=sPageURL.split('&');
+		for(var i=0;i<sURLVariables.length;i++){
+			var sParameterName=sURLVariables[i].split('=');
+			if(sParameterName[0]==sParam){
+				return sParameterName[1];
+			}
+		}
+	}
+	function calcRoute(){
+		if($('#stop-address').val()==''){
+			$('#status').removeClass('alert alert-success');
+			$('#status').addClass('alert alert-danger');
+			$('#status').text('Please enter stop address');return;
+		}
+		if($('#start-address').val()==''){
+			$('#status').removeClass('alert alert-success');
+			$('#status').addClass('alert alert-danger');
+			$('#status').text('Please enter start address');return;
+		}
+		$.blockUI.defaults.timeout=2000;
+		$('#distance-summary').block({message:'Please wait...'});
+		var start=$('#start-address').val();
+		var end=$('#stop-address').val();
+		var request={origin:start,destination:end,travelMode:google.maps.TravelMode.DRIVING};
+		directionsService.route(request,
+			function(response,status){
+				if(status==google.maps.DirectionsStatus.OK){
+					directionsDisplay.setDirections(response);
+					var totalDistance=0;
+					var totalDuration=0;
+					var legs=response.routes[0].legs;
+					for(var i=0;i<legs.length;++i){
+						totalDistance+=legs[i].distance.value;
+						totalDuration+=legs[i].duration.value;
+					}
+					var originAddress=$('#start-address').val();
+					var destinationAddress=$('#stop-address').val();
+					$.ajax({method:"POST",url:"/log/",data:{origin:originAddress,destination:destinationAddress,distance:totalDistance,duration:totalDuration}});
+					$('#origin').text(originAddress);
+					$('#destination').text(destinationAddress);
+					$('#origin2').text($('#start-address').val().split(",")[0]);
+					$('#destination2').text($('#stop-address').val().split(",")[0]);
+					$('#distance-summary-message').removeClass('hide');
+					$('#driving-distance').html(formatDistance(totalDistance));
+					$('#distance2').html(formatDistance(totalDistance));
+					$('#driving-time').text(formatTime(totalDuration));
+					console.log(JSON.stringify(response));
+					var leg=response.routes[0].legs[0];
+					var flightDistanceK=calcFlightDistance(leg.start_location.k,leg.start_location.D,leg.end_location.k,leg.end_location.D,"K");
+					var flightDistance=formatDistance(flightDistanceK*1000);
+					$('#flight-distance').html(flightDistance);
+					$('#status').removeClass('alert alert-danger');
+					$('#status').addClass('alert alert-success');
+					$('#status').text('Distance calculation was successful');
+					$('#distance-summary').unblock();
+				}
+				else{
+					$('#status').removeClass('alert alert-success');
+					$('#status').addClass('alert alert-danger');
+					$('#status').text('Distance calculation was unsuccessful');
+				}
+			});
+	}
+	function calcFlightDistance(lat1,lon1,lat2,lon2,unit){
+		var radlat1=Math.PI*lat1/180
+		var radlat2=Math.PI*lat2/180
+		var radlon1=Math.PI*lon1/180
+		var radlon2=Math.PI*lon2/180
+		var theta=lon1-lon2
+		var radtheta=Math.PI*theta/180
+		var dist=Math.sin(radlat1)*Math.sin(radlat2)+ Math.cos(radlat1)*Math.cos(radlat2)*Math.cos(radtheta);
+		dist=Math.acos(dist)
+		dist=dist*180/Math.PI
+		dist=dist*60*1.1515
+		if(unit=="K"){	
+			dist=dist*1.609344
+		}
+		if(unit=="N"){
+			dist=dist*0.8684
+		}
+		return dist
+	}
+	function vote(country,id,value){
+		$.ajax({method:"GET",url:"/vote/"+country+"/"+id+"/"+value+"/"});
+		$('#vote-status').removeClass("hide");
+		if(value<0){
+			$('#vote-status').html('Thanks for letting us know this was not helpful. We will correct the data as per your request.');
+		}
+		else{
+			$('#vote-status').html('Thanks for letting us know this was useful.');
+		}
+	}
+	google.maps.event.addDomListener(window,'load',initialize);
+	
+	function formatDistance(totalDistance){
+		var distanceKms='<b>'+Math.round(totalDistance/100)/10 + ' kms'+'</b>'
+		var distanceMiles='<b>'+ Math.round((totalDistance*0.621371)/100)/10 + ' miles' + '</b>';
+		var distanceNMiles='<b>'+ Math.round((totalDistance*0.539957)/100)/10 + ' n miles' + '</b>';
+		return distanceKms+' or '+ distanceMiles+' or '+ distanceNMiles;
+	}
+
+	function formatTime(totalDuration){
+		days=Math.floor(totalDuration/(3600*24));
+		totalDuration%=3600*24;
+		hours=Math.floor(totalDuration/3600);
+		totalDuration%=3600;
+		minutes=Math.floor(totalDuration/60);
+		seconds=totalDuration%60;
+		var duration="";
+		if(days>0){
+			duration+=days+' days, ';
+		}
+		if(hours>0){
+			duration+=hours+' hours, ';
+		}
+		duration+=minutes+' minutes';return duration;
+	}
+
+    </script>
+</head>
+
+<body onload="initialize()">
+
+</body>
+</html>

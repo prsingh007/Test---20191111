@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<body>
+
+<div ng-app="">
+ 
+<p>Input something in the input box:</p>
+<p>Name: <input type="number" ng-model="name1"></p>
+<p>Name: <input type="number" ng-model="name2"></p>
+<p>Name: <input type="number" ng-model="name3"></p>
+<p>Name: <input type="number" ng-model="name4"></p>
+<p>Name: <input type="number" ng-model="name5"></p>
+<p>{{name1+name2+name3+name4+name5}}</p>
+
+</div>
+
+</body>
+</html>

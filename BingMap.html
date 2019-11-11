@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>reuseInfoboxHTML</title>
+        <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
+    </head>
+    <body>
+        <div id='printoutPanel'></div>
+        
+        <div id='myMap' style='width: 100vw; height: 100vh;'></div>
+        <script type='text/javascript'>
+            function loadMapScenario() {
+                var map = new Microsoft.Maps.Map(document.getElementById('myMap'), {
+                    credentials: 'hMJ4ZZ4SvuP9mFvRMlUf~nFT4hDxarmOk1GZBXPhBXQ~AkHujlcW3Izlo62cw8F5ldRXXy9z7s5EZ3iQE18VGlsUiusnGtEC9d7phCldnMpI',
+                    center: new Microsoft.Maps.Location(47.60357, -122.32945)
+                });
+debugger;
+                var pushpins = Microsoft.Maps.TestDataGenerator.getPushpins(10, map.getBounds());
+                var infobox = new Microsoft.Maps.Infobox(pushpins[0].getLocation(), { visible: false });
+                infobox.setMap(map);
+                for (var i = 0; i < pushpins.length; i++) {
+                    var pushpin = pushpins[i];
+                    //Store some metadata with the pushpin
+                    pushpin.metadata = {
+                        title: 'Pushpin ' + i,
+                        description: 'Discription for pushpin' + i
+                    };
+                    Microsoft.Maps.Events.addHandler(pushpin, 'click', function (args) {
+                        infobox.setOptions({
+                            location: args.target.getLocation(),
+                            title: args.target.metadata.title,
+                            description: args.target.metadata.description,
+                            visible: true
+                        });
+                    });
+                }
+                map.entities.push(pushpins);
+                
+            }
+        </script>
+        <script type='text/javascript' src='http://www.bing.com/api/maps/mapcontrol?branch=release&callback=loadMapScenario' async defer></script>
+    </body>
+</html>

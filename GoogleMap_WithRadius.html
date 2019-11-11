@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html> 
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+  <title>Google Maps Multiple Markers</title> 
+  <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+</head> 
+<body>
+  <div id="map" style="width: 100%; height: 600px;"></div>
+  
+  <script>
+		var map;
+		debugger;
+		var contentString = '<div id="content">'+
+				  '<div id="siteNotice">'+
+				  '</div>'+
+				  '<h1 id="firstHeading" class="firstHeading">##STRING##</h1>'+
+				  '</div>';
+		map = new google.maps.Map(document.getElementById("map"), {
+				zoom: 10,
+				center: {lat: 12.962270, lng: 77.533561},
+				mapTypeId: google.maps.MapTypeId.HYBRID
+			});
+		var markerBounds = new google.maps.LatLngBounds();
+		var infoWindow = new google.maps.InfoWindow()
+        //var strLocation = "19.009210659041787, 72.8357383375153";
+		var strLocation = '12.895982, 77.570072$Putennahalli|12.907309, 77.573136$Jayaprakash Nagar|12.946623, 77.529941$Mysore Road|12.915869, 77.573610$Banashankari|12.923236, 77.580529$Rashtreeya Vidyalaya Road|12.929709, 77.580181$Jayanagar|12.938401, 77.579719$South End Circle|12.946376, 77.580050$Lalbagh|12.950614, 77.573614$National College|12.952186, 77.536935$Deepanjali Nagar|12.961364, 77.574872$Krishna Rajendra Market|12.961952, 77.533579$Attiguppe|12.964155, 77.577687$City Market|12.966837, 77.574256$Chickpete|12.970807, 77.537278$Vijayanagar|12.972971, 77.616996$Trinity|12.974136, 77.584028$Sir M. Visveshwarya|12.974146, 77.545519$Hosahalli|12.974209, 77.583974$Central College|12.975498, 77.606787$M.G. Road|12.975631, 77.555441$Magadi Road|12.975692, 77.572815$Majestic*|12.975815, 77.56571$City Railway Station|12.976416, 77.626653$Halasuru|12.978349, 77.638649$Indiranagar|12.979829, 77.592759$Vidhana Soudha|12.981053, 77.596935$Cubbon Park|12.985999, 77.644900$Swami Vivekananda Road|12.990500, 77.570756$Sampige Road|12.990749, 77.652455$Baiyappanahalli|12.996519, 77.563294$Srirampura|12.998456, 77.556953$Kuvempu Road|13.000338, 77.549698$Rajajinagar|13.008260, 77.548818$Mahalakshmi|13.014738, 77.553930$Sandal Soap Factory|13.028410, 77.540784$Yeshwantpur Industry|13.032921, 77.533294$Peenya|13.036392, 77.525438$Peenya Industry|13.039489, 77.519702$Jalahalli|13.043442, 77.512363$Dasarahalli|13.048011, 77.500192$Nagasandra|13.023179, 77.549944$Yeshwanthpur';
+		var strLoc = strLocation.split('|');
+		for(var j=0;j<strLoc.length;j++){			
+			var radius = 300;
+			var address = { lat: parseFloat(strLoc[j].split('$')[0].split(',')[0]), lng: parseFloat(strLoc[j].split('$')[0].split(',')[1])};
+			markerBounds.extend(address);			
+			
+			/*
+			var infowindow = new google.maps.InfoWindow({
+				content: contentString
+			});*/
+
+			var marker = new google.maps.Marker({
+			  map: map,
+			  position: address,
+			  title: strLoc[j].split('$')[1]
+			});
+			//var circle = "circle_"+lat
+			var circle = new google.maps.Circle({
+				radius: radius,
+				center: address,
+				map: map,
+				fillColor: '#0093d0',
+				fillOpacity: 0.5,
+				strokeColor: '#ff0000',
+				strokeOpacity: 0.5,
+			});
+			/*
+			marker.addListener('click', function() {
+				infowindow.open(map, marker);
+			});*/
+			google.maps.event.addListener(marker, 'click', (function(marker, j) {
+				return function() {
+					infoWindow.setContent(contentString.replace('##STRING##',strLoc[j].split('$')[1]));
+					infoWindow.open(map, marker);
+				}
+			})(marker, j));
+			circle.bindTo('center', marker, 'position');
+			map.fitBounds(markerBounds);
+		}
+		//markerBounds.extend(address);
+  </script> 
+</body>
+</html>

@@ -1,0 +1,109 @@
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript">
+    var markers = [
+            {
+                "title": 'Alibaug',
+                "lat": '18.641400',
+                "lng": '72.872200',
+                "description": 'Alibaug is a coastal town and a municipal council in Raigad District in the Konkan region of Maharashtra, India.'
+            },
+            {
+                "title": 'Aurangabad',
+                "lat": '19.879700',
+                "lng": '75.335300',
+                "description": 'Aurangabad'
+            },
+            {
+                "title": 'Dombivli',
+                "lat": '19.218400',
+                "lng": '73.086700',
+                "description": 'Dombivli'
+            },
+            {
+                "title": 'Lonavla',
+                "lat": '18.750000',
+                "lng": '73.416700',
+                "description": 'Lonavla'
+            },
+            {
+                "title": 'Malegaon',
+                "lat": '20.550500',
+                "lng": '74.530900',
+                "description": 'Malegaon'
+            },
+            {
+                "title": 'Mumbai',
+                "lat": '18.964700',
+                "lng": '72.825800',
+                "description": 'Mumbai formerly Bombay, is the capital city of the Indian state of Maharashtra.'
+            },
+            {
+                "title": 'Nashik',
+                "lat": '20.001400',
+                "lng": '73.786900',
+                "description": 'Nashik'
+            },
+            {
+                "title": 'Pune',
+                "lat": '18.523600',
+                "lng": '73.847800',
+                "description": 'Pune is the seventh largest metropolis in India, the second largest in the state of Maharashtra after Mumbai.'
+            },
+            {
+                "title": 'Shahpur',
+                "lat": '19.450000',
+                "lng": '73.330000',
+                "description": 'Shahpur'
+            },
+            {
+                "title": 'Shirdi',
+                "lat": '19.770000',
+                "lng": '74.480000',
+                "description": 'Shirdi'
+            },
+            {
+                "title": 'Thane',
+                "lat": '19.182800',
+                "lng": '72.961200',
+                "description": 'Thane'
+            },
+            {
+                "title": 'Vashi',
+                "lat": '18.750000',
+                "lng": '73.033300',
+                "description": 'Vashi'
+            }
+    ];
+    window.onload = function () {
+        var mapOptions = {
+            center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
+            zoom: 12,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var infoWindow = new google.maps.InfoWindow();
+        var map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+        var i = 0;
+        var interval = setInterval(function () {
+            var data = markers[i]
+            var myLatlng = new google.maps.LatLng(data.lat, data.lng);
+            var marker = new google.maps.Marker({
+                position: myLatlng,
+                map: map,
+                title: data.title,
+                animation: google.maps.Animation.DROP
+            });
+            (function (marker, data) {
+                google.maps.event.addListener(marker, "click", function (e) {
+                    infoWindow.setContent(data.description);
+                    infoWindow.open(map, marker);
+                });
+            })(marker, data);
+            i++;
+            if (i == markers.length) {
+                clearInterval(interval);
+            }
+        }, 200);
+    }
+</script>
+<div id="dvMap" style="width: 500px; height: 500px">
+</div>
